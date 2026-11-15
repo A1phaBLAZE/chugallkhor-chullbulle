@@ -17,7 +17,7 @@ import {
 // TOP-LEVEL CONFIGURATION (Keep key and video URLs intact!)
 // ============================================================================
 
-export const NASA_API_KEY = 'jtQp8gcRttGjd9rcN7fNF8p96fMjMwDr9FFLMTgt';
+export const NASA_API_KEY = (import.meta as any).env?.VITE_NASA_API_KEY || 'DEMO_KEY';
 
 // Replace placeholder strings with real MP4/WebM URLs whenever you are ready.
 // The game automatically plays an animated story card if a clip is still a placeholder or fails to load.
