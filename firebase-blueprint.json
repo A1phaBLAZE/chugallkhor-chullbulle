@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Public non-PII commander profile for Moon Base Mission.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "commanderName": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "avatarCrewId": { "type": "string", "enum": ["capt", "amy", "berry", "nikita"] },
+        "bestScience": { "type": "integer" },
+        "baseLevel": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "commanderName", "avatarCrewId", "bestScience", "baseLevel", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII storage for authenticated user email.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 254 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "email", "createdAt", "updatedAt"]
+    },
+    "MissionSave": {
+      "title": "MissionSave",
+      "description": "Saved Moon Base Mission campaign & base-building snapshot.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "day": { "type": "integer" },
+        "power": { "type": "integer" },
+        "oxygen": { "type": "integer" },
+        "shields": { "type": "integer" },
+        "mood": { "type": "integer" },
+        "science": { "type": "integer" },
+        "moonRocks": { "type": "integer" },
+        "wavesCleared": { "type": "integer" },
+        "status": { "type": "string", "enum": ["active", "completed", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "day", "power", "oxygen", "shields", "mood", "science", "moonRocks", "wavesCleared", "status", "createdAt", "updatedAt"]
+    },
+    "CrewThought": {
+      "title": "CrewThought",
+      "description": "AI consciousness thought or chat memory entry for a cat astronaut.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "crewId": { "type": "string", "enum": ["capt", "amy", "berry", "nikita"] },
+        "sender": { "type": "string", "enum": ["user", "cat", "thought"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "day": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "crewId", "sender", "message", "day", "createdAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public Moon Base Mission commander ranking (no PII).",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "commanderName": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "scienceScore": { "type": "integer" },
+        "baseLevel": { "type": "integer" },
+        "wavesCleared": { "type": "integer" },
+        "medal": { "type": "string", "enum": ["GOLD", "SILVER", "ACTIVE"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "commanderName", "scienceScore", "baseLevel", "wavesCleared", "medal", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/public/{profileId}": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "Public non-PII commander profile."
+    },
+    "/users/{userId}/private/{infoId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Private PII document accessible only by the owner."
+    },
+    "/users/{userId}/missions/{missionId}": {
+      "schema": { "$ref": "#/entities/MissionSave" },
+      "description": "Owner-isolated Moon Base Mission progression & resources."
+    },
+    "/users/{userId}/crewThoughts/{thoughtId}": {
+      "schema": { "$ref": "#/entities/CrewThought" },
+      "description": "AI consciousness diary and chat records per commander."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Non-PII mission scoreboard entries."
+    }
+  }
+}

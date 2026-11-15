@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0B132B"/>
+      <stop offset="100%" stop-color="#1C2541"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="42%" r="45%">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="70%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sky)"/>
+  <!-- Stars -->
+  <circle cx="96" cy="110" r="5" fill="#F8FAFC" opacity="0.9"/>
+  <circle cx="412" cy="96" r="6" fill="#FDE68A" opacity="0.9"/>
+  <circle cx="136" cy="378" r="4" fill="#BAE6FD" opacity="0.8"/>
+  <circle cx="400" cy="360" r="5" fill="#F8FAFC" opacity="0.85"/>
+  <circle cx="348" cy="136" r="3.5" fill="#F8FAFC" opacity="0.7"/>
+  <!-- Moon -->
+  <circle cx="256" cy="240" r="142" fill="url(#moonGlow)"/>
+  <circle cx="204" cy="196" r="22" fill="#F59E0B" opacity="0.25"/>
+  <circle cx="312" cy="272" r="28" fill="#F59E0B" opacity="0.22"/>
+  <circle cx="272" cy="166" r="14" fill="#F59E0B" opacity="0.2"/>
+  <!-- Cat Astronaut Helmet Silhouette in Center -->
+  <g transform="translate(256, 266)">
+    <!-- Cat ears on helmet -->
+    <path d="M-74,-52 L-92,-106 L-36,-76 Z" fill="#F97316" stroke="#0B132B" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M74,-52 L92,-106 L36,-76 Z" fill="#F97316" stroke="#0B132B" stroke-width="10" stroke-linejoin="round"/>
+    <!-- Helmet outer -->
+    <circle cx="0" cy="0" r="92" fill="#FFFFFF" stroke="#0B132B" stroke-width="10"/>
+    <!-- Visor -->
+    <circle cx="0" cy="4" r="68" fill="#0F172A"/>
+    <path d="M-46,-24 A52,52 0 0,1 16,-48" fill="none" stroke="#38BDF8" stroke-width="9" stroke-linecap="round" opacity="0.8"/>
+    <!-- Cute cat eyes & nose inside visor -->
+    <circle cx="-24" cy="2" r="8" fill="#FDE68A"/>
+    <circle cx="24" cy="2" r="8" fill="#FDE68A"/>
+    <polygon points="0,12 -7,22 7,22" fill="#FB7185"/>
+    <path d="M-12,27 Q0,37 12,27" fill="none" stroke="#F8FAFC" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+</svg>

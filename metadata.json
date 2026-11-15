@@ -1,0 +1,6 @@
+{
+  "name": "Moon Base Mission",
+  "description": "Help four cat astronauts survive a 10-day Moon mission using real NASA solar storm data and teamwork.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

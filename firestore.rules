@@ -1,0 +1,177 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidPublicProfile(data, userId) {
+      return data.keys().hasAll(['ownerId', 'commanderName', 'avatarCrewId', 'bestScience', 'baseLevel', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'commanderName', 'avatarCrewId', 'bestScience', 'baseLevel', 'createdAt', 'updatedAt'])
+        && data.ownerId is string && data.ownerId.size() <= 128 && data.ownerId == userId
+        && data.commanderName is string && data.commanderName.size() >= 1 && data.commanderName.size() <= 48
+        && data.avatarCrewId in ['capt', 'amy', 'berry', 'nikita']
+        && data.bestScience is int && data.bestScience >= 0 && data.bestScience <= 100000
+        && data.baseLevel is int && data.baseLevel >= 1 && data.baseLevel <= 50
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPrivateInfo(data, userId) {
+      return data.keys().hasAll(['ownerId', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'email', 'createdAt', 'updatedAt'])
+        && data.ownerId is string && data.ownerId.size() <= 128 && data.ownerId == userId
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMission(data, userId) {
+      return data.keys().hasAll(['ownerId', 'day', 'power', 'oxygen', 'shields', 'mood', 'science', 'moonRocks', 'wavesCleared', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'day', 'power', 'oxygen', 'shields', 'mood', 'science', 'moonRocks', 'wavesCleared', 'status', 'createdAt', 'updatedAt'])
+        && data.ownerId is string && data.ownerId.size() <= 128 && data.ownerId == userId
+        && data.day is int && data.day >= 1 && data.day <= 10
+        && data.power is int && data.power >= 0 && data.power <= 100
+        && data.oxygen is int && data.oxygen >= 0 && data.oxygen <= 100
+        && data.shields is int && data.shields >= 0 && data.shields <= 100
+        && data.mood is int && data.mood >= 0 && data.mood <= 100
+        && data.science is int && data.science >= 0 && data.science <= 10000
+        && data.moonRocks is int && data.moonRocks >= 0 && data.moonRocks <= 1000000
+        && data.wavesCleared is int && data.wavesCleared >= 0 && data.wavesCleared <= 1000
+        && data.status in ['active', 'completed', 'failed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCrewThought(data, userId) {
+      return data.keys().hasAll(['ownerId', 'crewId', 'sender', 'message', 'day', 'createdAt'])
+        && data.keys().hasOnly(['ownerId', 'crewId', 'sender', 'message', 'day', 'createdAt'])
+        && data.ownerId is string && data.ownerId.size() <= 128 && data.ownerId == userId
+        && data.crewId in ['capt', 'amy', 'berry', 'nikita']
+        && data.sender in ['user', 'cat', 'thought']
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 600
+        && data.day is int && data.day >= 1 && data.day <= 10
+        && data.createdAt is timestamp;
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.keys().hasAll(['ownerId', 'commanderName', 'scienceScore', 'baseLevel', 'wavesCleared', 'medal', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'commanderName', 'scienceScore', 'baseLevel', 'wavesCleared', 'medal', 'createdAt', 'updatedAt'])
+        && data.ownerId is string && data.ownerId.size() <= 128 && data.ownerId == request.auth.uid
+        && data.commanderName is string && data.commanderName.size() >= 1 && data.commanderName.size() <= 48
+        && data.scienceScore is int && data.scienceScore >= 0 && data.scienceScore <= 100000
+        && data.baseLevel is int && data.baseLevel >= 1 && data.baseLevel <= 50
+        && data.wavesCleared is int && data.wavesCleared >= 0 && data.wavesCleared <= 1000
+        && data.medal in ['GOLD', 'SILVER', 'ACTIVE']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/public/{profileId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(profileId);
+      allow list: if isSignedIn() && resource.data.ownerId is string;
+      allow create: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(profileId)
+        && isValidPublicProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(profileId)
+        && isValidPublicProfile(incoming(), userId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['commanderName', 'avatarCrewId', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['bestScience', 'baseLevel', 'updatedAt'])
+        );
+      allow delete: if false;
+    }
+
+    match /users/{userId}/private/{infoId} {
+      allow get: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(infoId);
+      allow list: if isVerified() && isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(infoId)
+        && isValidPrivateInfo(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(infoId)
+        && isValidPrivateInfo(incoming(), userId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    match /users/{userId}/missions/{missionId} {
+      allow get: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(missionId);
+      allow list: if isVerified() && isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(missionId)
+        && isValidMission(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(missionId)
+        && existing().status == 'active'
+        && isValidMission(incoming(), userId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['day', 'power', 'oxygen', 'shields', 'mood', 'science', 'moonRocks', 'wavesCleared', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'day', 'science', 'wavesCleared', 'updatedAt'])
+        );
+      allow delete: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(missionId);
+    }
+
+    match /users/{userId}/crewThoughts/{thoughtId} {
+      allow get: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(thoughtId);
+      allow list: if isVerified() && isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(thoughtId)
+        && isValidCrewThought(incoming(), userId)
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isVerified() && isOwner(userId) && isValidId(userId) && isValidId(thoughtId);
+    }
+
+    match /leaderboard/{entryId} {
+      allow get: if isSignedIn() && isValidId(entryId);
+      allow list: if isSignedIn() && resource.data.ownerId is string;
+      allow create: if isVerified() && isValidId(entryId)
+        && isValidLeaderboardEntry(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(entryId)
+        && existing().ownerId == request.auth.uid
+        && isValidLeaderboardEntry(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['commanderName', 'scienceScore', 'baseLevel', 'wavesCleared', 'medal', 'updatedAt']);
+      allow delete: if false;
+    }
+  }
+}
